@@ -25,7 +25,7 @@ def load_client_and_assistant():
     df = pd.read_csv(R"C:\Users\George.LAPTOP-TLP259VH\Documents\GitHub\Bot\content\parsed_pdf_docs_with_embeddings.csv")
     df["embeddings"] = df.embeddings.apply(literal_eval).apply(np.array)
     
-    return client, assistant, assistant_thread, companion, companion_thread, df
+    return client, assistant, assistant_thread, df
 
 if not st.session_state['API']:
     st.session_state['API'] = load_client_and_assistant()   # костыль для reboot

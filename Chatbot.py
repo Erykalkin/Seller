@@ -27,8 +27,6 @@ def load_client_and_assistant():
     
     return client, assistant, assistant_thread, df
 
-if not st.session_state['API']:
-    st.session_state['API'] = load_client_and_assistant()   # костыль для reboot
 client, assistant, assistant_thread, companion, companion_thread, df = st.session_state['API']
 
 

@@ -6,6 +6,7 @@ from decouple import config
 from collections import defaultdict
 import random
 import time
+import json
 from gpt import*
 from database import*
 
@@ -21,11 +22,11 @@ USERS_TO_GREET = get_users_without_contact()
 print(AUTHORIZED_USERS)
 
 # Приветствие
-async def greet_many_users(bot: Client):
+async def greet_new_users(bot: Client):
     async def greet(user_id):
         user = await bot.get_users(user_id)
         thread_id = get_or_create_thread(user_id)
-        username = get_username_by_id(bot, user_id)
+        username = await get_username_by_id(bot, user_id)
         try:
             response = await asyncio.get_event_loop().run_in_executor(
                 None,
@@ -34,7 +35,8 @@ async def greet_many_users(bot: Client):
                     thread_id
                 )
             )
-            await bot.send_message(user_id, response)
+            answer = json.loads(response)['answer']
+            await bot.send_message(user_id, answer)
 
             update_user_param(user_id, "contact", 1)
             update_user_param(user_id, 'thread_id', thread_id)
@@ -67,7 +69,7 @@ async def handle_message(client: Client, message: Message):
     thread_id = get_or_create_thread(user_id)
 
     # Добавляем сообщение в буфер
-    message_buffers[user_id].append(message.text)
+    message_buffers[user_id].append(f"[MESSAGE_ID: {message.id}]\n" + message.text)
     last_message_times[user_id] = time.time()
 
     # Если уже есть задача — отменяем
@@ -103,17 +105,29 @@ async def handle_user_buffer(client, chat_id, user_id, thread_id):
 
         task = asyncio.create_task(typing_loop())
 
-        combined_input = '\n'.join(message_buffers[user_id])
+        combined_input = '\n==========\n'.join(message_buffers[user_id])
         message_buffers[user_id].clear()
 
         loop = asyncio.get_event_loop()
+        
         try:
             print(4)
             response = await loop.run_in_executor(None, lambda: get_assistant_response(combined_input, thread_id))
+            reply = 0
+
+            try:
+                response = json.loads(response)
+                answer = response['answer']
+                reply = response['reply']
+            except json.JSONDecodeError:
+                pass
+
             print(5)
-            delay_after_response = min(len(response) * 0.2, 10.0)
+            delay_after_response = min(len(answer) * 0.2, 10.0)
             await asyncio.sleep(delay_after_response)
-            await client.send_message(chat_id, response)
+
+            await client.send_message(chat_id, answer, reply_to_message_id=reply if reply else None)
+
         finally:
             typing_active = False
             await task
@@ -123,7 +137,7 @@ async def handle_user_buffer(client, chat_id, user_id, thread_id):
 # Запуск бота
 async def main():
     await bot.start()
-    await greet_many_users(bot)
+    await greet_new_users(bot)
     await idle()
     await bot.stop()
 

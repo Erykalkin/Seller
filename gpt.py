@@ -1,14 +1,19 @@
 from decouple import config
 from openai import OpenAI
 import time
+import json
 from utils import*
 from database import*
+from tools import*
 
 
 def load_client_and_assistant():
-    prompt = get_prompt('assistant')
     client = OpenAI(api_key=config('OPENAI_API_KEY'))
-    assistant = client.beta.assistants.update(assistant_id=config('ASSISTANT_ID'), instructions=prompt)
+    assistant = client.beta.assistants.update(
+        assistant_id=config('ASSISTANT_ID'), 
+        instructions=get_prompt(), 
+        response_format=load_response_format()
+    )
     return client, assistant
 
 client, assistant = load_client_and_assistant()
@@ -18,7 +23,6 @@ def get_or_create_thread(username):
     thread_id = get_user_param(username, "thread_id")
 
     if thread_id:
-        print(thread_id)
         return thread_id
     
     thread = client.beta.threads.create()
@@ -52,6 +56,34 @@ def get_assistant_response(user_input, thread_id):
         thread_id=thread_id,
         assistant_id=assistant.id,
     )
+
+    if run.status == "requires_action":
+        print('TOOL')
+        tool_outputs = []
+        for tool_call in run.required_action.submit_tool_outputs.tool_calls:
+            function_name = tool_call.function.name
+            arguments = tool_call.function.arguments
+
+            try:
+                args = json.loads(arguments)
+            except Exception as e:
+                print("❌ Ошибка парсинга аргументов функции:", e)
+                continue
+
+            if function_name == "get_plot_link":
+                output = get_plot_link_handler(args.get("plot_id"))
+                tool_outputs.append({
+                    "tool_call_id": tool_call.id,
+                    "output": output
+                })
+
+        # Отправка результатов выполнения инструментов
+        run = client.beta.threads.runs.submit_tool_outputs_and_poll(
+            thread_id=thread_id,
+            run_id=run.id,
+            tool_outputs=tool_outputs
+        )
+
     messages = client.beta.threads.messages.list(
         thread_id=thread_id, order="asc"
     )

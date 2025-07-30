@@ -4,7 +4,7 @@ import os
 from pyrogram import Client
 from decouple import config
 
-DB_PATH = "users.db"
+DB_PATH = R"data\users.db"
 
 
 async def get_username_by_id(bot: Client, user_id: int):
@@ -18,7 +18,6 @@ async def get_username_by_id(bot: Client, user_id: int):
 async def get_id_by_username(bot: Client, username: str):
     try:
         user = await bot.get_users(username)
-        print(user.id)
         return user.id
     except Exception as e:
         print(f"❌ Ошибка при получении ID: {e}")

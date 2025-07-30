@@ -1,12 +1,12 @@
 # from PIL import Image
 import os
+import json
 
 
-def get_prompt(file='assistant'):
+def get_prompt(file='prompt'):
     try:
-        txt_file = Rf"prompts\{file}.txt"
-
-        with open(txt_file, "r", encoding="utf-8") as f:
+        path = Rf"assistant\{file}.txt"
+        with open(path, "r", encoding="utf-8") as f:
             content = f.read()
         
         return content
@@ -15,10 +15,10 @@ def get_prompt(file='assistant'):
         print(f'get_prompt error: {e}')
 
 
-def save_dialog(thread_id, messages):
+def save_dialog(thread, messages):
     log_dir = "dialog_logs"
     os.makedirs(log_dir, exist_ok=True)
-    filename = os.path.join(log_dir, f"thread_{thread_id}.txt")
+    filename = os.path.join(log_dir, f"thread_{thread}.txt")
 
     with open(filename, "w", encoding="utf-8") as f:    
         for message in messages:
@@ -26,7 +26,13 @@ def save_dialog(thread_id, messages):
             content = message.content[0].text.value if message.content else "[пусто]"
             f.write(f"[{role}]\n{content}\n\n")
 
-    
+
+def load_response_format(file="response_format.json"):
+    path = Rf"assistant\{file}"
+    with open(path, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
 # def update_prompt(text, file='assistant'):
 #     try:
 #         txt_file = Rf"prompts\{file}.txt"

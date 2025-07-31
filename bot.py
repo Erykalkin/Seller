@@ -52,9 +52,10 @@ user_tasks = {}  # user_id -> asyncio.Task
 message_buffers = defaultdict(list)
 last_message_times = {}
 
-BUFFER_TIME = 10  # время ожидания перед ответом
-DELAY_MIN = 5
-DELAY_MAX = 15
+BUFFER_TIME = 1  # время ожидания перед ответом
+DELAY_MIN = 0
+DELAY_MAX = 1
+TYPING_DELAY = 0.1
 
 # Обработчик входящих сообщений
 @bot.on_message(filters.text)
@@ -82,6 +83,7 @@ async def handle_message(client: Client, message: Message):
 
 async def handle_user_buffer(client, chat_id, user_id, thread_id):
     try:
+        # Ожидание нескольких сообщений подряд
         print(1)
         while True:
             await asyncio.sleep(1)
@@ -91,7 +93,7 @@ async def handle_user_buffer(client, chat_id, user_id, thread_id):
         await client.read_chat_history(chat_id)
         print(2)
 
-        # Ждём ещё немного рандомно
+        # Ждём ещё немного рандомно - в сети
         await asyncio.sleep(random.randint(DELAY_MIN, DELAY_MAX))
         print(3)
 
@@ -120,10 +122,10 @@ async def handle_user_buffer(client, chat_id, user_id, thread_id):
                 answer = response['answer']
                 reply = response['reply']
             except json.JSONDecodeError:
-                pass
+                answer = response
 
             print(5)
-            delay_after_response = min(len(answer) * 0.2, 10.0)
+            delay_after_response = min(len(answer) * TYPING_DELAY, 10.0)
             await asyncio.sleep(delay_after_response)
 
             await client.send_message(chat_id, answer, reply_to_message_id=reply if reply else None)

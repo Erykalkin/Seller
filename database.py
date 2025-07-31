@@ -10,17 +10,27 @@ DB_PATH = R"data\users.db"
 async def get_username_by_id(bot: Client, user_id: int):
     try:
         user = await bot.get_users(user_id)
-        return user.username
+        if user.username:
+            return user.username
+        elif user.phone_number:
+            return f"+{user.phone_number}"
+        else:
+            return f"User_{user.id}"
     except Exception as e:
-        print(f"❌ Ошибка при получении username: {e}")
-        return user_id
+        return str(user_id)
     
 async def get_id_by_username(bot: Client, username: str):
     try:
         user = await bot.get_users(username)
         return user.id
     except Exception as e:
-        print(f"❌ Ошибка при получении ID: {e}")
+        return None
+    
+async def get_phone_by_id(bot: Client, user_id: int):
+    try:
+        user = await bot.get_users(user_id)
+        return f"+{user.phone_number}" if user.phone_number else None
+    except Exception as e:
         return None
 
 
@@ -31,7 +41,10 @@ def init_db():
         CREATE TABLE IF NOT EXISTS users (
             user_id INTEGER PRIMARY KEY,
             username TEXT,
+            telephone TEXT,
             contact BOOLEAN,
+            deal BOOLEAN,
+            crm BOOLEAN,
             thread_id TEXT,
             info TEXT,
             summary TEXT
@@ -49,26 +62,32 @@ def delete_database():
         print(f"⚠️ База данных '{DB_PATH}' не найдена.")
 
 
-async def add_user(bot: Client, user_id: int, contact=False, thread_id='', info='', summary=''):
+async def add_user(bot: Client, user_id: int, info=''):
     username = await get_username_by_id(bot, user_id)
+    telephone = await get_phone_by_id(bot, user_id)
+    info += f"\n\nTG TELEPHONE NUBMER: {telephone}"
+
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute("""
-        INSERT OR REPLACE INTO users (user_id, username, contact, thread_id, info, summary)
-        VALUES (?, ?, ?, ?, ?, ?)
-    """, (user_id, username, contact, thread_id, info, summary))
+        INSERT OR REPLACE INTO users (user_id, username, telephone, contact, deal, crm, thread_id, info, summary)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (user_id, username, telephone, False, False, False, '', info, ''))
     conn.commit()
     conn.close()
 
 
-async def add_user_by_name(bot: Client, username: str, contact=False, thread_id='', info='', summary=''):
+async def add_user_by_name(bot: Client, username: str, info=''):
     user_id = await get_id_by_username(bot, username)
+    telephone = await get_phone_by_id(bot, user_id)
+    info += f"\n\nTG TELEPHONE NUBMER: {telephone}"
+
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute("""
-        INSERT OR REPLACE INTO users (user_id, username, contact, thread_id, info, summary)
-        VALUES (?, ?, ?, ?, ?, ?)
-    """, (user_id, username, contact, thread_id, info, summary))
+        INSERT OR REPLACE INTO users (user_id, username, telephone, contact, deal, crm, thread_id, info, summary)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (user_id, username, telephone, False, False, False, '', info, ''))
     conn.commit()
     conn.close()
 
@@ -91,7 +110,7 @@ def delete_user_by_name(username):
 
 def update_user_param(user_id: int, column: str, value):
     """Обновляет значение определённого параметра у user_id"""
-    allowed_columns = {"username", "contact", "thread_id", "description", "summary"}
+    allowed_columns = {"username", "telephone", "contact", "deal", "crm", "thread_id", "info", "summary"}
     
     if column not in allowed_columns:
         raise ValueError(f"Недопустимое имя колонки: {column}")
@@ -105,7 +124,7 @@ def update_user_param(user_id: int, column: str, value):
 
 def update_user_param_by_name(username: str, column: str, value):
     """Обновляет значение определённого параметра у username"""
-    allowed_columns = {"contact", "thread_id", "description", "summary"}
+    allowed_columns = {"telephone", "contact", "deal", "crm", "thread_id", "info", "summary"}
     
     if column not in allowed_columns:
         raise ValueError(f"Недопустимое имя колонки: {column}")
@@ -139,7 +158,7 @@ def get_users_without_contact():
 
 def get_user_param(user_id: int, column: str):
     """Возвращает значение определённого параметра для заданного user_id"""
-    allowed_columns = {"user_id", "username", "contact", "thread_id", "info", "summary"}
+    allowed_columns = {"username", "telephone", "contact", "deal", "crm", "thread_id", "info", "summary"}
     
     if column not in allowed_columns:
         raise ValueError(f"Недопустимое имя колонки: {column}")
@@ -181,5 +200,5 @@ def get_all_users(sorted_by_contact=False):
 
 def show_users(sorted_by_contact=False):
     rows = get_all_users(sorted_by_contact)
-    headers = ["Id", "Username", "Contact", "Thread ID", "Info", "Summary"]
+    headers = ["Id", "Username", "Telephone", "Contact", "Deal", "Added to CRM", "Thread ID", "Info", "Summary"]
     print(tabulate(rows, headers=headers, tablefmt="grid"))

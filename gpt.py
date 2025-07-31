@@ -67,19 +67,20 @@ def get_assistant_response(user_input, thread_id):
             try:
                 args = json.loads(arguments)
             except Exception as e:
-                print("❌ Ошибка парсинга аргументов функции:", e)
+                print("Failed to parse tool arguments:", e)
                 continue
 
             if function_name == "get_plot_link":
                 output = get_plot_link_handler(args.get("plot_id"))
-                tool_outputs.append({
+
+            elif function_name == "generate_summary_after_conversation":
+                output = make_summary(args.get("summary"))
+                print(output)
+
+            tool_outputs.append({
                     "tool_call_id": tool_call.id,
                     "output": output
                 })
-
-            if function_name == "generate_summary_after_conversation":
-                output = make_summary(args.get("summary"))
-                print(output)
 
         # Отправка результатов выполнения инструментов
         if tool_outputs:
@@ -89,14 +90,19 @@ def get_assistant_response(user_input, thread_id):
                     run_id=run.id,
                     tool_outputs=tool_outputs
                 )
+                print("Tool outputs submitted successfully.")
             except Exception as e:
-                print("❌ Ошибка при отправке tool_outputs:", e)
+                print("Failed to submit tool outputs:", e)
 
-    messages = client.beta.threads.messages.list(
-        thread_id=thread_id, order="asc"
-    )
-    save_dialog(thread_id, list(messages))
-    return make_output_from_response(list(messages))
+    if run.status == 'completed':
+        messages = client.beta.threads.messages.list(
+            thread_id=thread_id, order="asc"
+        )
+        save_dialog(thread_id, list(messages))
+        return make_output_from_response(list(messages))
+    else:
+        print('бля')
+        return "Error"
 
 
 # if __name__ == "__main__":

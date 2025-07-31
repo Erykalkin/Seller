@@ -1,6 +1,3 @@
-import json
-
-
 def get_plot_link_handler(plot_id):
     test_links = {
         "Междуморье": "https://xn----7sbbqebqelognciq2b4r.xn--p1ai/midsea",

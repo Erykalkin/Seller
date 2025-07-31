@@ -2,19 +2,6 @@
 import os
 import json
 
-
-def get_prompt(file='prompt'):
-    try:
-        path = Rf"assistant\{file}.txt"
-        with open(path, "r", encoding="utf-8") as f:
-            content = f.read()
-        
-        return content
-    
-    except Exception as e:
-        print(f'get_prompt error: {e}')
-
-
 def save_dialog(thread, messages):
     log_dir = "dialog_logs"
     os.makedirs(log_dir, exist_ok=True)
@@ -25,12 +12,6 @@ def save_dialog(thread, messages):
             role = message.role.upper()
             content = message.content[0].text.value if message.content else "[пусто]"
             f.write(f"[{role}]\n{content}\n\n")
-
-
-def load_response_format(file="response_format.json"):
-    path = Rf"assistant\{file}"
-    with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
 
 
 # def update_prompt(text, file='assistant'):

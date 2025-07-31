@@ -1,0 +1,76 @@
+[
+    {   
+        "type": "function",
+        "function": {
+            "name": "get_plot_link",
+            "description": "Show the link corresponding to a specific dacha plot",
+            "strict": true,
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "plot_id": {
+                        "type": "string",
+                        "description": "Name of the dacha plot. Must be one of: 'Междуморье', 'Победный берег', 'Королёвские дачи', 'Усадьба Джарылгач', 'Великие Луга'"
+                    }
+                },
+                "required": ["plot_id"],
+                "additionalProperties": false
+            }
+        }
+    },
+    {   
+        "type": "function",
+        "function": {
+            "name": "save_user_phone",
+            "description": "Save user phone to DB",
+            "strict": true,
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "phone": {
+                        "type": "string",
+                        "description": "User telephone number"
+                    }
+                },
+                "required": ["phone"],
+                "additionalProperties": false
+            }
+        }
+    },
+    {   
+        "type": "function",
+        "function": {
+            "name": "save_user_name",
+            "description": "Save user name to DB",
+            "strict": true,
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "User real name"
+                    }
+                },
+                "required": ["name"],
+                "additionalProperties": false
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "process_user_agreement",
+            "description": "Records the summary, and sends it to the CRM",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "summary": {
+                        "type": "string",
+                        "description": "Brief description of the conversation"
+                    }
+                },
+                "required": ["summary"]
+            }
+        }
+    }  
+]

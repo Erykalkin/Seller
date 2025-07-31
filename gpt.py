@@ -7,12 +7,25 @@ from database import*
 from tools import*
 
 
+def get_prompt(file='prompt'):
+    path = Rf"assistant\{file}.txt"
+    with open(path, "r", encoding="utf-8") as f:
+        content = f.read()
+    return content
+
+def load_assistant_component(file):
+    path = Rf"assistant\{file}.json"
+    with open(path, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
 def load_client_and_assistant():
     client = OpenAI(api_key=config('OPENAI_API_KEY'))
     assistant = client.beta.assistants.update(
         assistant_id=config('ASSISTANT_ID'), 
         instructions=get_prompt(), 
-        response_format=load_response_format()
+        response_format=load_assistant_component('response_format'),
+        tools=load_assistant_component('tools')
     )
     return client, assistant
 
@@ -46,7 +59,7 @@ def make_output_from_response(response):
     return response
 
 
-def get_assistant_response(user_input, thread_id):
+def get_assistant_response(user_input, thread_id, user_id):
     message = client.beta.threads.messages.create(
         thread_id=thread_id,
         role="user",
@@ -71,11 +84,24 @@ def get_assistant_response(user_input, thread_id):
                 continue
 
             if function_name == "get_plot_link":
-                output = get_plot_link_handler(args.get("plot_id"))
+                output = get_plot_link(args.get("plot_id"))
 
-            elif function_name == "generate_summary_after_conversation":
-                output = make_summary(args.get("summary"))
-                print(output)
+            elif function_name == "save_user_phone":
+                user_id = int(args.get("user_id"))
+                phone = args.get("phone")
+                save_user_phone(user_id, phone)
+                output = "Телефон сохранён."
+
+            elif function_name == "save_user_name":
+                user_id = int(args.get("user_id"))
+                name = args.get("name")
+                save_user_name(user_id, name)
+                output = "Имя сохранено."
+
+            elif function_name == "process_user_agreement":
+                summary = args.get("summary")
+                process_user_agreement(user_id, summary)
+                output = "Пользователь отмечен как согласный, данные отправлены в CRM."
 
             tool_outputs.append({
                     "tool_call_id": tool_call.id,

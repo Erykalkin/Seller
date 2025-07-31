@@ -114,7 +114,7 @@ async def handle_user_buffer(client, chat_id, user_id, thread_id):
         
         try:
             print(4)
-            response = await loop.run_in_executor(None, lambda: get_assistant_response(combined_input, thread_id))
+            response = await loop.run_in_executor(None, lambda: get_assistant_response(combined_input, thread_id, user_id))
             reply = 0
 
             try:

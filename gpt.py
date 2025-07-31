@@ -77,12 +77,20 @@ def get_assistant_response(user_input, thread_id):
                     "output": output
                 })
 
+            if function_name == "generate_summary_after_conversation":
+                output = make_summary(args.get("summary"))
+                print(output)
+
         # Отправка результатов выполнения инструментов
-        run = client.beta.threads.runs.submit_tool_outputs_and_poll(
-            thread_id=thread_id,
-            run_id=run.id,
-            tool_outputs=tool_outputs
-        )
+        if tool_outputs:
+            try:
+                run = client.beta.threads.runs.submit_tool_outputs_and_poll(
+                    thread_id=thread_id,
+                    run_id=run.id,
+                    tool_outputs=tool_outputs
+                )
+            except Exception as e:
+                print("❌ Ошибка при отправке tool_outputs:", e)
 
     messages = client.beta.threads.messages.list(
         thread_id=thread_id, order="asc"

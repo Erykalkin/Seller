@@ -12,6 +12,5 @@ def get_plot_link_handler(plot_id):
     return test_links.get(plot_id, "Неизвестный участок")
 
 
-def make_summary():
-    pass
-
+def make_summary(summary):
+    return summary

@@ -7,9 +7,10 @@
         "type": "object",
         "properties": {
           "answer": { "type": "string", "description": "Ответ клиенту"},
+          "file": { "type": "boolean", "description": "True, если надо прислать пользователю каталог товаров. Иначе - False"},
           "reply": { "type": "integer", "description": "ID сообщения, если нужно цитировать сообщение клиента для ответа. Редко. В случае отсутствия цитаты поле = 0."}
         },
-        "required": [ "answer", "reply" ],
+        "required": [ "answer", "file", "reply"],
         "additionalProperties": false
     }
   }

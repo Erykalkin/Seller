@@ -121,6 +121,7 @@ async def handle_user_buffer(client, chat_id, user_id, thread_id):
             try:
                 response = json.loads(response)
                 answer = response['answer']
+                send_pdf = response['file']
                 reply = response['reply']
             except json.JSONDecodeError:
                 answer = response
@@ -131,6 +132,10 @@ async def handle_user_buffer(client, chat_id, user_id, thread_id):
 
             await client.send_message(chat_id, answer, reply_to_message_id=reply if reply else None)
 
+            if send_pdf:
+                file_path = f"assistant/catalog.pdf"
+                await client.send_document(chat_id, document=file_path)
+                
         finally:
             typing_active = False
             await task

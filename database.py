@@ -4,7 +4,7 @@ import os
 from pyrogram import Client
 from decouple import config
 
-DB_PATH = R"data\users.db"
+DB_PATH = R"data/users.db"
 
 
 async def get_username_by_id(bot: Client, user_id: int):

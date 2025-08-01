@@ -7,13 +7,13 @@ from tools import*
 
 
 def get_prompt(file='prompt'):
-    path = Rf"assistant\{file}.txt"
+    path = Rf"assistant/{file}.txt"
     with open(path, "r", encoding="utf-8") as f:
         content = f.read()
     return content
 
 def load_assistant_component(file):
-    path = Rf"assistant\{file}.json"
+    path = Rf"assistant/{file}.json"
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
 
@@ -125,7 +125,6 @@ def get_assistant_response(user_input, thread_id, user_id):
         save_dialog(thread_id, list(messages))
         return make_output_from_response(list(messages))
     else:
-        print('бля')
         return "Error"
 
 

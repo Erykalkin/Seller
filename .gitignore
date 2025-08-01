@@ -1,7 +1,5 @@
 .env
-*.ipynb
 *.db
 *.session
 *.session-journal
-assistant.txt
 /dialog_logs

@@ -1,6 +1,5 @@
 from decouple import config
 from openai import OpenAI
-import time
 import json
 from utils import*
 from database import*

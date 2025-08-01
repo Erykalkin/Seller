@@ -4,4 +4,7 @@
 *.session-journal
 /dialog_logs
 __pycache__/
-*.py[cod]
+*.pyc
+.env.*
+.vscode/
+.idea/

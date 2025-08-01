@@ -42,7 +42,7 @@ def init_db():
             user_id INTEGER PRIMARY KEY,
             username TEXT,
             telephone TEXT,
-            name: TEXT
+            name TEXT,
             contact BOOLEAN,
             deal BOOLEAN,
             crm BOOLEAN,

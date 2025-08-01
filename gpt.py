@@ -71,7 +71,6 @@ def get_assistant_response(user_input, thread_id, user_id):
     )
 
     if run.status == "requires_action":
-        print('TOOL')
         tool_outputs = []
         for tool_call in run.required_action.submit_tool_outputs.tool_calls:
             function_name = tool_call.function.name
@@ -83,17 +82,17 @@ def get_assistant_response(user_input, thread_id, user_id):
                 print("Failed to parse tool arguments:", e)
                 continue
 
+            print(function_name)
+
             if function_name == "get_plot_link":
                 output = get_plot_link(args.get("plot_id"))
 
             elif function_name == "save_user_phone":
-                user_id = int(args.get("user_id"))
                 phone = args.get("phone")
                 save_user_phone(user_id, phone)
                 output = "Телефон сохранён."
 
             elif function_name == "save_user_name":
-                user_id = int(args.get("user_id"))
                 name = args.get("name")
                 save_user_name(user_id, name)
                 output = "Имя сохранено."

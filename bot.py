@@ -32,7 +32,8 @@ async def greet_new_users(bot: Client):
                 None,
                 lambda: get_assistant_response(
                     f"CLIENT_INFO: {get_user_param(user_id, 'info')}",
-                    thread_id
+                    thread_id,
+                    user.id
                 )
             )
             answer = json.loads(response)['answer']
@@ -41,9 +42,9 @@ async def greet_new_users(bot: Client):
             update_user_param(user_id, "contact", 1)
             update_user_param(user_id, 'thread_id', thread_id)
 
-            print(f"✅ Привет отправлен {username}")
+            print(f"Привет отправлен {username}")
         except Exception as e:
-            print(f"❌ Ошибка при отправке {username}: {e}")
+            print(f"Ошибка при отправке {username}: {e}")
 
     await asyncio.gather(*[greet(user) for user in USERS_TO_GREET])
 

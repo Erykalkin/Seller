@@ -2,7 +2,8 @@
 *.db
 *.session
 *.session-journal
-/dialog_logs
+*.pdf
+dialog_logs/
 __pycache__/
 *.pyc
 .env.*

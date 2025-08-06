@@ -2,10 +2,10 @@
 import os
 import json
 
-def save_dialog(thread, messages):
+def save_dialog(file, messages):
     log_dir = "dialog_logs"
     os.makedirs(log_dir, exist_ok=True)
-    filename = os.path.join(log_dir, f"thread_{thread}.txt")
+    filename = os.path.join(log_dir, f"{file}.txt")
 
     with open(filename, "w", encoding="utf-8") as f:    
         for message in messages:

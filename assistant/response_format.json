@@ -7,10 +7,12 @@
         "type": "object",
         "properties": {
           "answer": { "type": "string", "description": "Ответ клиенту"},
+          "send": {"type": "boolean", "description": "True, если нужно отобразить сообщение в чате. Иначе - False"},
           "file": { "type": "boolean", "description": "True, если надо прислать пользователю каталог товаров. Иначе - False"},
+          "wait": { "type": "boolean", "description": "True, если ждем ответа. Иначе - False"},
           "reply": { "type": "integer", "description": "ID сообщения, если нужно цитировать сообщение клиента для ответа. Редко. В случае отсутствия цитаты поле = 0."}
         },
-        "required": [ "answer", "file", "reply"],
+        "required": [ "answer", "send", "file", "wait", "reply"],
         "additionalProperties": false
     }
   }

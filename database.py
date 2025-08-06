@@ -22,7 +22,9 @@ async def get_username_by_id(bot: Client, user_id: int):
 async def get_id_by_username(bot: Client, username: str):
     try:
         user = await bot.get_users(username)
-        return user.id
+        if user.id > 100:
+            return user.id
+        return None
     except Exception as e:
         return None
     
@@ -80,6 +82,8 @@ async def add_user(bot: Client, user_id: int, info=''):
 
 async def add_user_by_name(bot: Client, username: str, info=''):
     user_id = await get_id_by_username(bot, username)
+    if user_id is None:
+        return
     telephone = await get_phone_by_id(bot, user_id)
     info += f"\n\nTG TELEPHONE NUBMER: {telephone}"
 

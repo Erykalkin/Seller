@@ -1,0 +1,10 @@
+{
+    "BUFFER_TIME": 1.0,
+    "DELAY": 1.0,
+    "TYPING_DELAY": 0.1,
+    "INACTIVITY_TIMEOUT": 1000,
+    "GREET_PERIOD": 10,
+    "TIMEZONE": "Europe/Moscow",
+    "MORNING": 0,
+    "NIGHT": 24
+}

@@ -21,6 +21,20 @@
     {   
         "type": "function",
         "function": {
+            "name": "send_tg_link",
+            "description": "Send telegram chanel link",
+            "strict": true,
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": [],
+                "additionalProperties": false
+            }
+        }
+    },
+    {   
+        "type": "function",
+        "function": {
             "name": "save_user_phone",
             "description": "Save user phone to DB",
             "strict": true,
@@ -72,5 +86,19 @@
                 "required": ["summary"]
             }
         }
-    }  
+    },
+    {   
+        "type": "function",
+        "function": {
+            "name": "ban_user",
+            "description": "Block the current user in the database",
+            "strict": true,
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": [],
+                "additionalProperties": false
+            }
+        }
+    }
 ]

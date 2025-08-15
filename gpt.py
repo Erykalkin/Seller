@@ -13,6 +13,7 @@ def get_prompt(file='prompt'):
         content = f.read()
     return content
 
+
 def load_assistant_component(file):
     path = Rf"assistant/{file}.json"
     with open(path, "r", encoding="utf-8") as f:
@@ -77,23 +78,32 @@ def wait_for_completion(thread_id, run_id, timeout=30):
 
 
 def handle_tool_output(function_name, args, user_id):
+    output = None
+
     if function_name == "get_plot_link":
         output = get_plot_link(args.get("plot_id"))
+
+    elif function_name == "send_tg_link":
+        output = send_tg_link()
 
     elif function_name == "save_user_phone":
         phone = args.get("phone")
         save_user_phone(user_id, phone)
-        output = "Телефон сохранён."
+        output = "tool output: Телефон сохранён."
 
     elif function_name == "save_user_name":
         name = args.get("name")
         save_user_name(user_id, name)
-        output = "Имя сохранено."
+        output = "tool output: Имя сохранено."
+
+    elif function_name == "ban_user":
+        ban_user(user_id)
+        output = "tool output: Пользователь заблокирован"
 
     elif function_name == "process_user_agreement":
         summary = args.get("summary")
         process_user_agreement(user_id, summary)
-        output = "Пользователь отмечен как согласный, данные отправлены в CRM."
+        output = "tool output: Пользователь отмечен как согласный, данные отправлены в CRM. SEND = FALSE!"
 
     return output
 

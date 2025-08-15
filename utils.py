@@ -2,6 +2,7 @@
 import os
 import json
 
+
 def save_dialog(file, messages):
     log_dir = "dialog_logs"
     os.makedirs(log_dir, exist_ok=True)

@@ -8,6 +8,7 @@ from decouple import config
 url = "https://forms.amocrm.ru/queue/add"
 form_id = config('CRM_FORM_ID')
 hash = config('CRM_HASH')
+referer = config('CRM_REFERER')
 
 
 def send_to_crm(name: str, phone: str, note: str, telegram: str):
@@ -31,7 +32,7 @@ def send_to_crm(name: str, phone: str, note: str, telegram: str):
 
         headers = {
             "Origin": "https://forms.amocrm.ru",
-            "Referer": "https://forms.amocrm.ru/forms/html/form_1579218_affb08f106552e982527cec4f563692b.html"
+            "Referer": referer
         }
 
         response = requests.post(url, data=data, headers=headers)

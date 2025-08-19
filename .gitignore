@@ -10,7 +10,7 @@ __pycache__/
 .vscode/
 .idea/
 venv/
-prompt.txt
+assistant/prompt.txt
 draft.ipynb
 nohup.out
 ss.config

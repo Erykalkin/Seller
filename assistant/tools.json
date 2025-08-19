@@ -2,32 +2,21 @@
     {   
         "type": "function",
         "function": {
-            "name": "get_plot_link",
-            "description": "Show the link corresponding to a specific dacha plot",
+            "name": "get_link",
+            "description": "Retrieve a link from a JSON database using a sequence of keys. The database can contain any category or nested structure of links.",
             "strict": true,
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "plot_id": {
-                        "type": "string",
-                        "description": "Name of the dacha plot. Must be one of: 'Междуморье', 'Победный берег', 'Королёвские дачи', 'Усадьба Джарылгач', 'Великие Луга'"
+                    "keys": {
+                        "type": "array",
+                        "description": "A list of keys representing the path in the JSON structure to the desired link. Can be one or multiple keys for nested structures.",
+                        "items": {
+                            "type": "string"
+                        }   
                     }
                 },
-                "required": ["plot_id"],
-                "additionalProperties": false
-            }
-        }
-    },
-    {   
-        "type": "function",
-        "function": {
-            "name": "send_tg_link",
-            "description": "Send telegram chanel link",
-            "strict": true,
-            "parameters": {
-                "type": "object",
-                "properties": {},
-                "required": [],
+                "required": ["keys"],
                 "additionalProperties": false
             }
         }

@@ -80,11 +80,8 @@ def wait_for_completion(thread_id, run_id, timeout=30):
 def handle_tool_output(function_name, args, user_id):
     output = None
 
-    if function_name == "get_plot_link":
-        output = get_plot_link(args.get("plot_id"))
-
-    elif function_name == "send_tg_link":
-        output = send_tg_link()
+    if function_name == "get_link":
+        output = get_link(args.get("keys"))
 
     elif function_name == "save_user_phone":
         phone = args.get("phone")

@@ -2,14 +2,63 @@ import sqlite3
 from tabulate import tabulate
 import os
 from pyrogram import Client
+from pyrogram.errors import PeerIdInvalid
+from pyrogram.raw import functions, types
 from decouple import config
 
 DB_PATH = R"data/users.db"
 
 
-async def get_username_by_id(bot: Client, user_id: int):
+async def connect_user(bot: Client, user_id: int, access_hash: int = None):
+    """
+    Возвращает pyrogram.types.User при наличии доступа.
+    Возвращает pyrogram.raw.types.User при отсутствии доступа, если есть access_hash.
+    """
+    access_hash = await get_access_hash(bot, user_id)
+
     try:
+        # Пробуем high-level API
         user = await bot.get_users(user_id)
+        return user
+
+    except PeerIdInvalid:
+        # Если стандартный способ не прошёл, используем raw API
+        if access_hash is None:
+            print(f"connect_user: Невозможно получить пользователя {user_id}, не найден access_hash")
+            return None
+            
+        input_peer = await bot.resolve_peer(user_id)
+        result = await bot.invoke(functions.users.GetUsers(id=[input_peer]))
+        if result:
+            return result[0]
+        return None
+
+
+async def get_access_hash(bot: Client, user_id: int):
+    """
+    Возвращает access_hash из БД, если он там есть.
+    Иначе — получает его через resolve_peer после того, как пользователь написал боту.
+    """
+
+    access_hash = get_user_param(user_id, "access_hash")
+    
+    if access_hash is None:
+        try:
+            input_peer = await bot.resolve_peer(user_id)
+            result = await bot.invoke(functions.users.GetUsers(id=[input_peer]))
+            if result:
+                raw_user = result[0]
+                access_hash = raw_user.access_hash
+                update_user_param(user_id, "access_hash", access_hash)
+        except Exception as e:
+            print(f"get_access_hash: Не удалось получить access_hash для {user_id}: {e}")
+
+    return access_hash
+
+
+async def get_username_by_id(bot: Client, user_id: int, access_hash: int = None):
+    try:
+        user = await connect_user(bot, user_id, access_hash)
         if user.username:
             return user.username
         elif user.phone_number:
@@ -30,10 +79,11 @@ async def get_id_by_username(bot: Client, username: str):
         return None
     
 
-async def get_phone_by_id(bot: Client, user_id: int):
+async def get_phone_by_id(bot: Client, user_id: int, access_hash: int = None):
     try:
-        user = await bot.get_users(user_id)
-        return f"+{user.phone_number}" if user.phone_number else None
+        user = await connect_user(bot, user_id, access_hash)
+        return f"+{user.phone_number}" if getattr(user, "phone_number", None) else \
+               f"+{user.phone}" if getattr(user, "phone", None) else None
     except Exception as e:
         return None
 
@@ -44,6 +94,7 @@ def init_db():
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS users (
             user_id INTEGER PRIMARY KEY,
+            access_hash INTEGER,
             username TEXT,
             telephone TEXT,
             name TEXT,
@@ -62,22 +113,22 @@ def init_db():
 def delete_database():
     if os.path.exists(DB_PATH):
         os.remove(DB_PATH)
-        print(f"✅ База данных '{DB_PATH}' удалена.")
+        print(f"База данных '{DB_PATH}' удалена.")
     else:
-        print(f"⚠️ База данных '{DB_PATH}' не найдена.")
+        print(f"База данных '{DB_PATH}' не найдена.")
 
 
-async def add_user(bot: Client, user_id: int, info=''):
-    username = await get_username_by_id(bot, user_id)
-    telephone = await get_phone_by_id(bot, user_id)
+async def add_user(bot: Client, user_id: int, access_hash: int, info=''):
+    username = await get_username_by_id(bot, user_id, access_hash)
+    telephone = await get_phone_by_id(bot, user_id, access_hash)
     info += f"\n\nTG TELEPHONE NUBMER: {telephone}"
 
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute("""
-        INSERT OR REPLACE INTO users (user_id, username, telephone, name, contact, banned, crm, thread_id, info, summary)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """, (user_id, username, telephone, '', False, False, False, '', info, ''))
+        INSERT OR REPLACE INTO users (user_id, access_hash, username, telephone, name, contact, banned, crm, thread_id, info, summary)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (user_id, access_hash, username, telephone, '', False, False, False, '', info, ''))
     conn.commit()
     conn.close()
 
@@ -92,9 +143,9 @@ async def add_user_by_name(bot: Client, username: str, info=''):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute("""
-        INSERT OR REPLACE INTO users (user_id, username, telephone, name, contact, banned, crm, thread_id, info, summary)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """, (user_id, username, telephone, '', False, False, False, '', info, ''))
+        INSERT OR REPLACE INTO users (user_id, access_hash, username, telephone, name, contact, banned, crm, thread_id, info, summary)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (user_id, None, username, telephone, '', False, False, False, '', info, ''))
     conn.commit()
     conn.close()
 
@@ -117,7 +168,7 @@ def delete_user_by_name(username):
 
 def update_user_param(user_id: int, column: str, value):
     """Обновляет значение определённого параметра у user_id"""
-    allowed_columns = {"username", "telephone", "name", "contact", "banned", "crm", "thread_id", "info", "summary"}
+    allowed_columns = {"access_hash", "username", "telephone", "name", "contact", "banned", "crm", "thread_id", "info", "summary"}
     
     if column not in allowed_columns:
         raise ValueError(f"Недопустимое имя колонки: {column}")
@@ -144,6 +195,16 @@ def update_user_param_by_name(username: str, column: str, value):
 
 
 def get_users():
+    """Вернёт список всех (user_id, access_hash)"""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("SELECT user_id, access_hash FROM users")
+    users = [(row[0], row[1]) for row in cursor.fetchall()]
+    conn.close()
+    return users
+
+
+def get_ids():
     """Вернёт список всех user_id"""
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
@@ -154,18 +215,18 @@ def get_users():
 
 
 def get_users_without_contact():
-    """Вернёт список user_id, у которых contact = False"""
+    """Вернёт список (user_id, access_hash), у которых contact = False"""
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    cursor.execute("SELECT user_id FROM users WHERE contact = 0")
-    users = [row[0] for row in cursor.fetchall()]
+    cursor.execute("SELECT user_id, access_hash FROM users WHERE contact = 0")
+    users = [(row[0], row[1]) for row in cursor.fetchall()]
     conn.close()
     return users
 
 
 def get_user_param(user_id: int, column: str):
     """Возвращает значение определённого параметра для заданного user_id"""
-    allowed_columns = {"username", "telephone", "name", "contact", "banned", "crm", "thread_id", "info", "summary"}
+    allowed_columns = {"access_hash", "username", "telephone", "name", "contact", "banned", "crm", "thread_id", "info", "summary"}
     
     if column not in allowed_columns:
         raise ValueError(f"Недопустимое имя колонки: {column}")
@@ -201,11 +262,28 @@ def get_all_users(sorted_by_contact=False):
     else:
         cursor.execute("SELECT * FROM users")
     rows = cursor.fetchall()
-    conn.close()
+    conn.close
     return rows
 
 
 def show_users(sorted_by_contact=False):
     rows = get_all_users(sorted_by_contact)
-    headers = ["Id", "Username", "Telephone", "Name", "Contact", "Banned", "Added to CRM", "Thread ID", "Info", "Summary"]
+    headers = ["Id", "Access Hash", "Username", "Telephone", "Name", "Contact", "Banned", "Added to CRM", "Thread ID", "Info", "Summary"]
     print(tabulate(rows, headers=headers, tablefmt="grid"))
+
+
+# Связь с БД парсера
+def get_target_users_with_info():
+    conn = sqlite3.connect("/home/appuser/parser/data/users.db")
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT user_id, access_hash, info
+        FROM users
+        WHERE target = 1
+          AND info IS NOT NULL
+          AND info != ''
+    """)
+    rows = cur.fetchall()
+    conn.close()
+    return rows

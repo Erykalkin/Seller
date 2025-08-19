@@ -1,20 +1,21 @@
 from database import*
 from crm import*
+import json
 
 
-def get_plot_link(plot_id):
-    links = {
-        "Междуморье": "https://xn----7sbbqebqelognciq2b4r.xn--p1ai/midsea",
-        "Победный берег": "https://xn----7sbbqebqelognciq2b4r.xn--p1ai/pobednyi",
-        "Королёвские дачи": "https://xn----7sbbqebqelognciq2b4r.xn--p1ai/korolevo",
-        "Усадьба Джарылгач": "https://xn----7sbbqebqelognciq2b4r.xn--p1ai/dzharylgach",
-        "Великие Луга": "https://xn----7sbbqebqelognciq2b4r.xn--p1ai/velikieluga"
-    }
-    return links.get(plot_id, "Неизвестный участок")
+LINKS_DB = json.loads("Seller/data/links.json")
 
 
-def send_tg_link():
-    return "https://t.me/nasledie_company"
+def get_link(*keys):
+    current = LINKS_DB
+    for key in keys:
+        if isinstance(current, dict) and key in current:
+            current = current[key]
+        else:
+            return "Ссылка не найдена"
+    if isinstance(current, str):
+        return current
+    return "Ссылка не найдена"
 
 
 def save_user_phone(user_id: int, phone: str):

@@ -3,7 +3,8 @@ from crm import*
 import json
 
 
-LINKS_DB = json.loads("Seller/data/links.json")
+with open("data/links.json", "r", encoding="utf-8") as f:
+    LINKS_DB = json.load(f)
 
 
 def get_link(*keys):
